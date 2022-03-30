@@ -28,7 +28,6 @@ from discord import TextChannel
 from youtube_search import YoutubeSearch
 import asyncio
 from yt_dlp import YoutubeDL
-import socket
 from threading import Thread
 
 
@@ -145,17 +144,16 @@ class MyClient(commands.Bot):
         print(self.user.name)
         print(self.user.id)
         print('------')
-        self.Carlos = await self.fetch_user(129763563689476096)
-        self.Diego = await self.fetch_user(168874656378388480)
-        self.otherCarlos = await self.fetch_user(236342617187549194)
         await self.change_presence(activity=discord.Game(name="$play URL, or @ me to chat!"))
         self.sendDMs.start()
                               
         # send a request to the model without caring about the response
         # just so that the model wakes up and starts loading
         self.query({'inputs': {'text': 'Hello!'}})
-        
+        self.NCASChannel = self.get_channel(958715860049076296)
         for guild in self.guilds:
+          if(guild.id == 958714492269785108):
+            self.NCASServer = guild
           self.queuedict[guild.id] = []
           self.loopdict[guild.id] = False
           print(guild.id)
@@ -559,9 +557,7 @@ class MyClient(commands.Bot):
           if os.stat("latestIP.txt").st_size != 0:
             with open('latestIP.txt', 'r') as file:
               data = file.read()
-              await self.Carlos.send(data)
-              await self.Diego.send(data)
-              await self.otherCarlos.send(data)
+              await self.NCASChannel.send(data)
             with open('latestIP.txt', 'w') as file:
               file.write("")
               
@@ -602,4 +598,3 @@ if __name__ == '__main__':
   print("running client")
   client.run(os.environ['DISCORD_TOKEN'])
   my_secret = os.environ['DISCORD_TOKEN']
-
