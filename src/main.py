@@ -19,7 +19,6 @@ import requests
 
 # the Discord Python API
 import discord
-from dotenv import load_dotenv
 from discord.ext import commands
 from discord.utils import get
 from discord.ext import tasks
@@ -29,6 +28,8 @@ from youtube_search import YoutubeSearch
 import asyncio
 from yt_dlp import YoutubeDL
 from threading import Thread
+from discord_slash.utils import manage_components
+from discord_slash.model import ButtonStyle
 
 
 # this is my Hugging Face profile link
@@ -37,31 +38,14 @@ loop = False
 
 class MyClient(commands.Bot):
     def __init__(self, model_name, command_prefix):
-        super().__init__(command_prefix = "$")
-        self.command()(self.Hello)
-        self.command()(self.join)
-        self.command()(self.play)
-        self.command()(self.resume)
-        self.command()(self.stop)
-        self.command()(self.pause)
-        self.command()(self.hentai)
-        self.command()(self.commandlist)
-        self.command()(self.skip)
-        self.command()(self.leave)
-        self.command()(self.display)
-        self.command()(self.repeat)
-        self.command()(self.makePlaylist)
-        self.command()(self.addtoPlaylist)
-        self.command()(self.showPlaylists)
-        self.command()(self.playlist)
-        self.command()(self.devDisplay)
-        self.command()(self.deleteFromPlaylist)
+        super().__init__(command_prefix = "$", intents=intents)
         self.queue = []
         self.queuedict = {}
         self.loopdict = {}
         self.dataFromClient = ""
         self.Carlos = None
         self.Diego = None
+        
         with open("servers.json", "r") as json_file:
           self.queuedict = json.load(json_file)
         self.playlistdict = {}
@@ -76,6 +60,482 @@ class MyClient(commands.Bot):
         }
 
 
+#----------------------------- HELLO ---------------------------------------------
+        @self.command(name="Hello")
+        async def Hello(ctx):
+          print("hello called")
+          # user = await self.fetch_user(129763563689476096)
+          # user2 = await self.fetch_user(168874656378388480)
+          # await user.send('Hello')
+          # await user2.send("Hello")
+          await ctx.send(embed=embed, view=DeleteEmbedView())
+          await ctx.send("Hello!")
+
+
+
+
+#--------------------------------- JOIN ------------------------------------------
+        @self.command(name="join")
+        async def join(ctx):
+          channel = ctx.message.author.voice.channel
+          voice = get(self.voice_clients, guild=ctx.guild)
+          if voice and voice.is_connected():
+            await voice.move_to(channel)
+          else:
+            voice = await channel.connect()
+
+
+
+
+
+
+
+
+
+
+#-------------------------------- PLAY --------------------------------------------
+        @self.command(name="play")
+        async def play(ctx,*, url):
+              print(url)
+              if 'porn' in url:
+                await ctx.send("I'm not playing that.")
+                return
+              if 'hentai' in url:
+                await ctx.send("I'm not playing that.")
+                return
+              print("play called")
+              await ctx.invoke(self.get_command("join"))
+              message = await ctx.send('Working on it...')
+              FFMPEG_OPTIONS = {'before_options' : '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options' : '-vn'} #youtube_dl options
+              YDL_OPTIONS = {'format': 'bestaudio/best', 'extractaudio': True, 'audioformat': 'mp3', 'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+              'restrictfilenames': True, 'noplaylist': True, 'nocheckcertificate': True, 'ignoreerrors': False, 'logtostderr': False, 'quiet': True,
+              'no_warnings': True, 'default_search': 'auto', 'source_address': '0.0.0.0'}
+              voice = get(self.voice_clients, guild=ctx.guild)
+
+
+
+
+              #Youtube stuff
+              if not voice.is_playing():
+                with YoutubeDL(YDL_OPTIONS) as ydl:
+                  if url.startswith("https"):
+                    URL = url
+                    results = YoutubeSearch(url, max_results=1).to_dict()
+                    info = ydl.extract_info(URL, download=False)
+                    URL = info['url']
+                    url2 = info['id']
+                  else:
+                    results = YoutubeSearch(url, max_results=1).to_dict()
+                    #print(str(results))
+                    url2 = results[0]['id']
+                    #print(url2)
+                    info = ydl.extract_info(url2, download=False)
+                    #print(info)
+                    URL = info['url']
+                    #print(URL)
+                  voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
+            
+              
+                  #Auxiliary Message Handling
+                  voice.is_playing()
+                if not url.startswith("https:"):
+                  await message.edit(content = 'Enjoy your music! (Looping: **'+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n ' + 'https://www.youtube.com/watch?v='+url2)
+                else:
+                  await message.edit(content = 'Enjoy your music! (Looping:** '+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n'+ url)
+                  emoji = discord.utils.get(ctx.guild.emojis, name = 'KurisuThumbsUp')
+                  emoji2 = discord.utils.get(ctx.guild.emojis, name = 'KurisuHeart')
+                  await message.add_reaction(emoji)
+                  await message.add_reaction(emoji2)
+              else:
+                try:
+                  self.queuedict[ctx.guild.id].append(url)
+                except:
+                  self.queuedict[ctx.guild.id] = [url]
+                await ctx.message.delete()
+                await ctx.send("I added your song to the queue.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#--------------------------------- RESUME ---------------------------------------------
+        @self.command(name="resume")
+        async def resume(ctx):
+                  voice = get(self.voice_clients, guild=ctx.guild)
+                  if not voice.is_playing():
+                    voice.resume()
+                    await ctx.send('Resuming.')
+            # check if the bot is already playing
+                  else:
+                    await ctx.send("Resume what? The music is already playing.")
+                    return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------- STOP -------------------------------------------
+        @self.command(name="stop")
+        async def stop(ctx):
+              voice = get(self.voice_clients, guild=ctx.guild)
+              self.queue.clear()
+              if voice.is_playing():
+                voice.stop()
+                await ctx.send('Stopped.')
+              else:
+                await ctx.send("Stop what? Seriously, pay attention. There's nothing playing.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------------- PAUSE ---------------------------------------------------
+        @self.command(name="pause")
+        async def pause(ctx):
+              voice = get(self.voice_clients, guild=ctx.guild)
+              if voice.is_playing():
+                voice.pause()
+                await ctx.send('Paused.')
+              else:
+                await ctx.send("Pay attention, there's nothing playing.")
+
+
+
+
+
+
+
+
+
+
+#----------------------------------- HENTAI -----------------------------------------------
+        @self.command(name="hentai")
+        async def hentai(ctx):
+              await ctx.channel.send(file=discord.File('Horny.gif'))
+
+
+#------------------------------- COMMANDLIST --------------------------------------------
+        @self.command(name="commandlist")
+        async def commandlist(ctx):
+          await ctx.channel.send('Hey! These are the commands available right now:\n $join\n$play\n$resume\n$pause\n$stop\n$hentai\n\nYou can also @ me if you want to chat!')
+
+
+
+
+
+
+
+
+
+
+
+#--------------------------------- SKIP -------------------------------------------------
+        @self.command(name="skip")
+        async def skip(ctx):
+              if len(self.queuedict[ctx.guild.id]) >= 1:
+                print("skip if success.")
+                voice = get(self.voice_clients, guild=ctx.guild)
+                if voice.is_playing():
+                  voice.stop()
+                  await ctx.send("Skipping.")
+                else:
+                  ctx.send("What do you want me to skip? There's nothing playing.")
+              else:
+                voice = get(self.voice_clients, guild=ctx.guild)
+                voice.stop()
+                await ctx.send("The queue is empty now.")
+
+
+
+
+
+
+
+
+
+
+
+
+#---------------------------------- LEAVE -----------------------------------------------
+        @self.command(name="leave")
+        async def leave(ctx):
+          self.queuedict[ctx.guild.id].clear()
+          await ctx.message.guild.voice_client.disconnect()
+          await ctx.send("See you later.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------ DISPLAY -----------------------------------------
+        @self.command(name="display")
+        async def display(ctx):
+          count = 1
+          temp = "```These are the songs currently in the queue:\n"
+          for s in self.queuedict[ctx.guild.id]:
+            temp = temp + str(count) + ". " + s + "\n"
+            count = count + 1
+          temp = temp + "```"
+          await ctx.send(temp)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------REPEAT ---------------------------------------
+        @self.command(name="repeat")
+        async def repeat(ctx):
+          self.loopdict[ctx.guild.id] = not self.loopdict[ctx.guild.id]
+          if self.loopdict[ctx.guild.id]:
+            await ctx.send("I'll loop the song.")
+          else:
+            await ctx.send("I'll stop looping the song")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------------MAKEPLAYLIST ----------------------------------
+        @self.command(name="makePlaylist")
+        async def makePlaylist(ctx, *, content):
+          self.playlistdict[content] = []
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------------ADDTOPLAYLIST--------------------------------------
+        @self.command(name="addtoPlaylist")
+        async def addtoPlaylist(ctx, *, content):
+          targetPlaylist = content[0:content.find(',')]
+          song = content[content.find(',')+2: len(content)]
+          self.playlistdict[targetPlaylist].append(song)
+          with open("playlists.json", "w") as outfile:
+            json.dump(self.playlistdict, outfile)
+          message = "Added " + "*" + song + "*" " to playlist " + "*" + targetPlaylist + "*"
+          await ctx.send(message)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------SHOW PLAYLISTS --------------------------------------
+        @self.command(name="showPlaylists")
+        async def showPlaylists(ctx):
+          temp = "```These are the currently available playlists and their content.\n"
+          count = 1
+          for key, value in self.playlistdict.items():
+            temp = temp + key + ":" + "\n"
+            count = 1
+            for s in value:
+              temp = temp + str(count) + ". " + s + "\n"
+              count = count + 1
+          temp  = temp + "```"
+          await ctx.send(temp)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#--------------------------------- PLAYLIST --------------------------------------------
+        @self.command(name="playlist")
+        async def playlist(ctx, *, content):
+            for s in self.playlistdict[content]:
+              try:
+                self.queuedict[ctx.guild.id].append(s)
+              except:
+                self.queuedict[ctx.guild.id] = [s]
+            #await self.play(ctx, url = self.queuedict[ctx.guild.id].pop(0))
+            await ctx.invoke(self.get_command("play"), url=self.queuedict[ctx.guild.id].pop(0))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#---------------------------------- DEVDISPLAY -----------------------------------------
+        @self.command(name="devDisplay")
+        async def devDisplay(ctx):
+            await ctx.send(self.playlistdict)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------ DELETE FROM PLAYLIST --------------------------------------
+        @self.command(name="deleteFromPlaylist")
+        async def deleteFromPlaylist(ctx, *, content):
+          targetPlaylist = content[0:content.find(',')]
+          song = content[content.find(',')+2: len(content)]
+          self.playlistdict[targetPlaylist].remove(song)
+          with open("playlists.json", "w") as outfile:
+            json.dump(self.playlistdict, outfile)
+          message = "Removed " + "*" + song + "*" " from playlist " + "*" + targetPlaylist + "*"
+          await ctx.send(message)
+#--------------------------------------- END OF COMMANDS ------------------------------------
+
+    class DeleteEmbedView(discord.ui.View):
+      @discord.ui.button(label='I joined', style=discord.ButtonStyle.green)
+      async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
+          # This is called once the button is clicked
+          await interaction.message.delete() #delete the message with the embed
+          # delete it from the JSON file here
 
 
 
@@ -102,14 +562,6 @@ class MyClient(commands.Bot):
 
 
 
-    async def deleteFromPlaylist(self, ctx, *, content):
-      targetPlaylist = content[0:content.find(',')]
-      song = content[content.find(',')+2: len(content)]
-      self.playlistdict[targetPlaylist].remove(song)
-      with open("playlists.json", "w") as outfile:
-        json.dump(self.playlistdict, outfile)
-      message = "Removed " + "*" + song + "*" " from playlist " + "*" + targetPlaylist + "*"
-      await ctx.send(message)
 
 
 
@@ -117,9 +569,7 @@ class MyClient(commands.Bot):
     
     
     
-    
-    async def devDisplay(self, ctx):
-      await ctx.send(self.playlistdict)
+  
 
 
 
@@ -172,17 +622,7 @@ class MyClient(commands.Bot):
 
 
 
-    async def makePlaylist(self, ctx, *, content):
-      self.playlistdict[content] = []
-    
-
-    async def playlist(self, ctx, *, content):
-      for s in self.playlistdict[content]:
-        try:
-          self.queuedict[ctx.guild.id].append(s)
-        except:
-          self.queuedict[ctx.guild.id] = [s]
-      await self.play(ctx, url = self.queuedict[ctx.guild.id].pop(0))
+ 
 
 
 
@@ -194,34 +634,6 @@ class MyClient(commands.Bot):
 
 
 
-    async def showPlaylists(self, ctx):
-      temp = "```These are the currently available playlists and their content.\n"
-      count = 1
-      for key, value in self.playlistdict.items():
-        temp = temp + key + ":" + "\n"
-        count = 1
-        for s in value:
-          temp = temp + str(count) + ". " + s + "\n"
-          count = count + 1
-      temp  = temp + "```"
-      await ctx.send(temp)
-
-
-
-
-
-
-
-
-
-    async def addtoPlaylist(self, ctx, *, content):
-      targetPlaylist = content[0:content.find(',')]
-      song = content[content.find(',')+2: len(content)]
-      self.playlistdict[targetPlaylist].append(song)
-      with open("playlists.json", "w") as outfile:
-        json.dump(self.playlistdict, outfile)
-      message = "Added " + "*" + song + "*" " to playlist " + "*" + targetPlaylist + "*"
-      await ctx.send(message)
 
 
 
@@ -232,12 +644,15 @@ class MyClient(commands.Bot):
 
 
 
-    async def repeat(self, ctx):
-      self.loopdict[ctx.guild.id] = not self.loopdict[ctx.guild.id]
-      if self.loopdict[ctx.guild.id]:
-        await ctx.send("I'll loop the song.")
-      else:
-        await ctx.send("I'll stop looping the song")
+
+
+
+
+
+
+
+
+
     
 
 
@@ -297,21 +712,8 @@ class MyClient(commands.Bot):
 
 
 
-    async def display(self, ctx):
-      count = 1
-      temp = "```These are the songs currently in the queue:\n"
-      for s in self.queuedict[ctx.guild.id]:
-        temp = temp + str(count) + ". " + s + "\n"
-        count = count + 1
-      temp = temp + "```"
-      await ctx.send(temp)
 
-    async def Hello(self, ctx):
-      print("hello called")
-      user = await self.fetch_user(129763563689476096)
-      user2 = await self.fetch_user(168874656378388480)
-      await user.send('Hello')
-      await user2.send("Hello")
+
               
       
        
@@ -328,14 +730,6 @@ class MyClient(commands.Bot):
 
 
 
-
-    async def join(self, ctx):
-      channel = ctx.message.author.voice.channel
-      voice = get(self.voice_clients, guild=ctx.guild)
-      if voice and voice.is_connected():
-        await voice.move_to(channel)
-      else:
-        voice = await channel.connect()
       
     
 
@@ -351,65 +745,7 @@ class MyClient(commands.Bot):
 
 
 #---------------------------Play function----------------------------------
-
-    async def play(self, ctx,*, url):
-      print(url)
-      if 'porn' in url:
-        await ctx.send("I'm not playing that.")
-        return
-      if 'hentai' in url:
-        await ctx.send("I'm not playing that.")
-        return
-      print("play called")
-      await self.join(ctx)
-      message = await ctx.send('Working on it...')
-      FFMPEG_OPTIONS = {'before_options' : '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options' : '-vn'} #youtube_dl options
-      YDL_OPTIONS = {'format': 'bestaudio/best', 'extractaudio': True, 'audioformat': 'mp3', 'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-      'restrictfilenames': True, 'noplaylist': True, 'nocheckcertificate': True, 'ignoreerrors': False, 'logtostderr': False, 'quiet': True,
-      'no_warnings': True, 'default_search': 'auto', 'source_address': '0.0.0.0'}
-      voice = get(self.voice_clients, guild=ctx.guild)
-
-
-
-
-      #Youtube stuff
-      if not voice.is_playing():
-        with YoutubeDL(YDL_OPTIONS) as ydl:
-          if url.startswith("https"):
-            URL = url
-            results = YoutubeSearch(url, max_results=1).to_dict()
-            info = ydl.extract_info(URL, download=False)
-            URL = info['url']
-            url2 = info['id']
-          else:
-            results = YoutubeSearch(url, max_results=1).to_dict()
-            #print(str(results))
-            url2 = results[0]['id']
-            #print(url2)
-            info = ydl.extract_info(url2, download=False)
-            #print(info)
-            URL = info['url']
-            #print(URL)
-          voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
     
-      
-          #Auxiliary Message Handling
-          voice.is_playing()
-        if not url.startswith("https:"):
-          await message.edit(content = 'Enjoy your music! (Looping: **'+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n ' + 'https://www.youtube.com/watch?v='+url2)
-        else:
-          await message.edit(content = 'Enjoy your music! (Looping:** '+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n'+ url)
-          emoji = discord.utils.get(ctx.guild.emojis, name = 'KurisuThumbsUp')
-          emoji2 = discord.utils.get(ctx.guild.emojis, name = 'KurisuHeart')
-          await message.add_reaction(emoji)
-          await message.add_reaction(emoji2)
-      else:
-         try:
-           self.queuedict[ctx.guild.id].append(url)
-         except:
-          self.queuedict[ctx.guild.id] = [url]
-         await ctx.message.delete()
-         await ctx.send("I added your song to the queue.")
 
 
 
@@ -424,11 +760,13 @@ class MyClient(commands.Bot):
 
     async def play_next(self, ctx, url):
       if self.loopdict[ctx.guild.id]:      
-          await self.play(ctx = ctx, url = url)
+          #await self.play(ctx = ctx, url = url)
+          await ctx.invoke(self.get_command("play"), url=url)
       print("play_next called")
       if len(self.queuedict[ctx.guild.id]) >= 1:
         print("play_next if success.")
-        await self.play(ctx = ctx, url = self.queuedict[ctx.guild.id].pop(0))
+        #await self.play(ctx = ctx, url = self.queuedict[ctx.guild.id].pop(0))
+        await ctx.invoke(self.get_command("play"), url=self.queuedict[ctx.guild.id].pop(0))
       else:
         print("play_next else fulfilled")
         return
@@ -441,10 +779,6 @@ class MyClient(commands.Bot):
 
 
 
-    async def leave(self, ctx):
-      self.queuedict[ctx.guild.id].clear()
-      await ctx.message.guild.voice_client.disconnect()
-      await ctx.send("See you later.")
 
 
 
@@ -457,20 +791,7 @@ class MyClient(commands.Bot):
 
 
 
-
-    async def skip(self, ctx):
-      if len(self.queuedict[ctx.guild.id]) >= 1:
-        print("skip if success.")
-        voice = get(self.voice_clients, guild=ctx.guild)
-        if voice.is_playing():
-         voice.stop()
-         await ctx.send("Skipping.")
-        else:
-          ctx.send("What do you want me to skip? There's nothing playing.")
-      else:
-        voice = get(self.voice_clients, guild=ctx.guild)
-        voice.stop()
-        await ctx.send("The queue is empty now.")
+   
 
 
     
@@ -481,16 +802,7 @@ class MyClient(commands.Bot):
 
 
 
-
-    async def resume(self, ctx):
-      voice = get(self.voice_clients, guild=ctx.guild)
-      if not voice.is_playing():
-        voice.resume()
-        await ctx.send('Resuming.')
-# check if the bot is already playing
-      else:
-        await ctx.send("Resume what? The music is already playing.")
-        return
+    
     
 
 
@@ -503,14 +815,7 @@ class MyClient(commands.Bot):
 
 
 
-
-    async def pause(self, ctx):
-      voice = get(self.voice_clients, guild=ctx.guild)
-      if voice.is_playing():
-        voice.pause()
-        await ctx.send('Paused.')
-      else:
-        await ctx.send("Pay attention, there's nothing playing.")
+    
     
 
 
@@ -523,15 +828,7 @@ class MyClient(commands.Bot):
 
 
 
-
-    async def stop(self, ctx):
-      voice = get(self.voice_clients, guild=ctx.guild)
-      self.queue.clear()
-      if voice.is_playing():
-        voice.stop()
-        await ctx.send('Stopped.')
-      else:
-        await ctx.send("Stop what? Seriously, pay attention. There's nothing playing.")
+    
 
     
 
@@ -543,9 +840,6 @@ class MyClient(commands.Bot):
 
 
 
-
-    async def hentai(self, ctx):
-      await ctx.channel.send(file=discord.File('Horny.gif'))
 
 
 
@@ -580,8 +874,6 @@ class MyClient(commands.Bot):
 
 
 
-    async def commandlist(self, ctx):
-      await ctx.channel.send('Hey! These are the commands available right now:\n $join\n$play\n$resume\n$pause\n$stop\n$hentai\n\nYou can also @ me if you want to chat!')
 
   
     
@@ -591,7 +883,7 @@ class MyClient(commands.Bot):
 
 if __name__ == '__main__':
     #DialoGPT-medium-Kurisu is my model name
-  intents = discord.Intents()
+  intents = discord.Intents.all()
   intents.all()
   intents.members = True
   client = MyClient('DialoGPT-medium-Kurisu', commands.Bot(command_prefix="$",     intents=intents))
