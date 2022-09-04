@@ -28,6 +28,7 @@ from youtube_search import YoutubeSearch
 import asyncio
 from yt_dlp import YoutubeDL
 from threading import Thread
+from discord import Button
 
 
 # this is my Hugging Face profile link
@@ -35,6 +36,15 @@ API_URL = 'https://api-inference.huggingface.co/models/BlightZz/'
 loop = False
 
 class MyClient(commands.Bot):
+
+
+
+    
+
+
+
+
+
     def __init__(self, model_name, command_prefix):
         super().__init__(command_prefix = "$", intents=intents)
         self.queue = []
@@ -58,16 +68,27 @@ class MyClient(commands.Bot):
         }
 
 
+#---------------------------- BUTTONS / INTERFACE --------------------------------
+
+
+
+
+
+
 #----------------------------- HELLO ---------------------------------------------
         @self.command(name="Hello")
         async def Hello(ctx):
-          print("hello called")
-          # user = await self.fetch_user(129763563689476096)
-          # user2 = await self.fetch_user(168874656378388480)
-          # await user.send('Hello')
-          # await user2.send("Hello")
-          await ctx.send(embed=embed, view=DeleteEmbedView())
-          await ctx.send("Hello!")
+          view = discord.ui.View() # Establish an instance of the discord.ui.View class
+          style = discord.ButtonStyle.green  # The button will be gray in color
+          item = discord.ui.Button(style=style, label="Read the docs!", custom_id="skip") 
+          #item.callback(interaction=self.invoke(self.get_command("play"), url="blue lobster meme")) # Create an item to pass into the view class.
+          view.add_item(item=item)  # Add that item into the view class
+          await ctx.send("This message has buttons!", view=view)  # Send your message with a button.
+
+          
+          
+        
+
 
 
 
@@ -133,13 +154,26 @@ class MyClient(commands.Bot):
                     #print(URL)
                   voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
             
-              
-                  #Auxiliary Message Handling
+                  view = discord.ui.View() # Establish an instance of the discord.ui.View class
+                  styleSkip = discord.ButtonStyle.green  # The button will be gray in color
+                  itemSkip = discord.ui.Button(style=styleSkip, label="Skip", custom_id="skip") 
+                  stylePause = discord.ButtonStyle.red
+                  itemPause = discord.ui.Button(style=stylePause, label="Pause", custom_id="Pause")
+                  styleDisplay = discord.ButtonStyle.blurple
+                  itemDisplay = discord.ui.Button(style=styleDisplay, label="Queue", custom_id="Display")
+                  styleRepeat = discord.ButtonStyle.gray
+                  itemRepeat = discord.ui.Button(style=styleRepeat, label="Loop", custom_id = "Repeat")
+                  view.add_item(item=itemSkip) 
+                  view.add_item(item=itemPause)
+                  view.add_item(item=itemDisplay)
+                  view.add_item(item=itemRepeat)
+                   # Add that item into the view class
+                          #Auxiliary Message Handling
                   voice.is_playing()
                 if not url.startswith("https:"):
-                  await message.edit(content = 'Enjoy your music! (Looping: **'+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n ' + 'https://www.youtube.com/watch?v='+url2)
+                  await message.edit(content = 'Enjoy your music! (Looping: **'+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n ' + 'https://www.youtube.com/watch?v='+url2, view=view)
                 else:
-                  await message.edit(content = 'Enjoy your music! (Looping:** '+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n'+ url)
+                  await message.edit(content = 'Enjoy your music! (Looping:** '+ str(self.loopdict[ctx.guild.id]) + '**)' + '\n'+ url,view=view)
                   emoji = discord.utils.get(ctx.guild.emojis, name = 'KurisuThumbsUp')
                   emoji2 = discord.utils.get(ctx.guild.emojis, name = 'KurisuHeart')
                   await message.add_reaction(emoji)
@@ -527,14 +561,23 @@ class MyClient(commands.Bot):
           message = "Removed " + "*" + song + "*" " from playlist " + "*" + targetPlaylist + "*"
           await ctx.send(message)
 #--------------------------------------- END OF COMMANDS ------------------------------------
+        @self.event
+        async def on_interaction(interaction):
+              print("this works")
+              print(interaction.data)
+              await interaction.response.defer()
+              ctx = await self.get_context(interaction.channel.last_message)
+              if interaction.data['custom_id'] == "skip":
+                await ctx.invoke(self.get_command("skip"))
+              if interaction.data['custom_id'] == "Pause":
+                await ctx.invoke(self.get_command("pause"))
+              if interaction.data['custom_id'] == "Display":
+                await ctx.invoke(self.get_command("display"))
+              if interaction.data['custom_id'] == "Repeat":
+                await ctx.invoke(self.get_command("repeat"))
+              
 
-    # class DeleteEmbedView(discord.ui.View):
-    #   @discord.ui.button(label='I joined', style=discord.ButtonStyle.green)
-    #   async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
-    #       # This is called once the button is clicked
-    #       await interaction.message.delete() #delete the message with the embed
-    #       # delete it from the JSON file here
-
+#----------------------------------------------------------------------------------------------------
 
 
     def query(self, payload):
@@ -702,7 +745,9 @@ class MyClient(commands.Bot):
 
 
 
-
+ 
+            
+            
 
 
 
@@ -768,77 +813,12 @@ class MyClient(commands.Bot):
       else:
         print("play_next else fulfilled")
         return
-    
 
 
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-   
-
-
-    
 
 
         
-
-
-
-
     
-    
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-
-
-
 
 
 ########################################  SERVER  ##################################
@@ -857,10 +837,9 @@ class MyClient(commands.Bot):
             
       
 
+
       
-      
-      
-    
+         
 
 
 
