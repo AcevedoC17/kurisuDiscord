@@ -28,8 +28,6 @@ from youtube_search import YoutubeSearch
 import asyncio
 from yt_dlp import YoutubeDL
 from threading import Thread
-from discord_slash.utils import manage_components
-from discord_slash.model import ButtonStyle
 
 
 # this is my Hugging Face profile link
