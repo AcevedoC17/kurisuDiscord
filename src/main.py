@@ -528,12 +528,12 @@ class MyClient(commands.Bot):
           await ctx.send(message)
 #--------------------------------------- END OF COMMANDS ------------------------------------
 
-    class DeleteEmbedView(discord.ui.View):
-      @discord.ui.button(label='I joined', style=discord.ButtonStyle.green)
-      async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
-          # This is called once the button is clicked
-          await interaction.message.delete() #delete the message with the embed
-          # delete it from the JSON file here
+    # class DeleteEmbedView(discord.ui.View):
+    #   @discord.ui.button(label='I joined', style=discord.ButtonStyle.green)
+    #   async def delete(self, button: discord.ui.Button, interaction: discord.Interaction):
+    #       # This is called once the button is clicked
+    #       await interaction.message.delete() #delete the message with the embed
+    #       # delete it from the JSON file here
 
 
 
