@@ -28,7 +28,6 @@ from youtube_search import YoutubeSearch
 import asyncio
 from yt_dlp import YoutubeDL
 from threading import Thread
-from discord import Button
 
 
 # this is my Hugging Face profile link
