@@ -266,6 +266,9 @@ class MyClient(commands.Bot):
                 voice.pause()
                 await ctx.send('Paused.')
               else:
+                if not self.queuedict[ctx.guild.id]:
+                  await ctx.invoke(self.get_command("resume"))
+                  return
                 await ctx.send("Pay attention, there's nothing playing.")
 
 
