@@ -637,6 +637,7 @@ class MyClient(commands.Bot):
         print(self.user.name)
         print(self.user.id)
         print('------')
+        print("Kurisu is in", len(self.guilds), "servers")
         await self.change_presence(activity=discord.Game(name="$play URL, or @ me to chat!"))
         self.sendDMs.start()
                               
@@ -651,8 +652,6 @@ class MyClient(commands.Bot):
           self.loopdict[guild.id] = False
           print(guild.id)
           print("added to dict")
-
-          print("Kurisu is in", len(self.guilds), "servers")
         with open("servers.json", "w") as outfile:
           json.dump(self.queuedict, outfile)
           print("Saved server list as json.")
