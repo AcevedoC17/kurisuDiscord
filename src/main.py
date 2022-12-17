@@ -187,6 +187,23 @@ class MyClient(commands.Bot):
 
 
 
+              while voice.is_playing():
+                    print("Entered initial while check ") #Checks if voice is playing
+                    await asyncio.sleep(1) #While it's playing it sleeps for 1 second
+              else:
+                    print("Entered else")
+                    await asyncio.sleep(60) #If it's not playing it waits 60 seconds
+                    while voice.is_playing(): #and checks once again if the bot is not playing
+                        break #if it's playing it breaks
+                    else:
+                        await ctx.send("If you've got nothing to play, I'll leave.")
+                        await ctx.message.guild.voice_client.disconnect()
+
+
+                
+
+
+
 
 
 
@@ -828,13 +845,6 @@ class MyClient(commands.Bot):
     @tasks.loop(seconds=10)
     async def sendDMs(self):
           print("Got loop")
-          #print("Entered sendDMs loop")
-          if os.stat("latestIP.txt").st_size != 0:
-            with open('latestIP.txt', 'r') as file:
-              data = file.read()
-              await self.NCASChannel.send(data)
-            with open('latestIP.txt', 'w') as file:
-              file.write("")
               
             
             
