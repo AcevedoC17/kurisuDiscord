@@ -692,6 +692,7 @@ class MyClient(commands.Bot):
           print("Saved server list as json.")
 
         self.admin = await client.fetch_user("129763563689476096")
+        await self.admin.send("I'm trying to send you my latest IP")
         await self.admin.send(self.getNgrok())
         
         
