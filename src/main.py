@@ -16,6 +16,8 @@ except ImportError:
 # these modules are for querying the Hugging Face model
 import json
 import requests
+import time
+import subprocess
 
 # the Discord Python API
 import discord
@@ -50,7 +52,7 @@ class MyClient(commands.Bot):
         self.queuedict = {}
         self.loopdict = {}
         self.dataFromClient = ""
-        self.Carlos = None
+        self.admin = 129763563689476096
         self.Diego = None
         
         with open("servers.json", "r") as json_file:
@@ -65,6 +67,11 @@ class MyClient(commands.Bot):
         self.request_headers = {
             'Authorization': 'Bearer {}'.format(huggingface_token)
         }
+
+
+
+
+    
 
 
 #---------------------------- BUTTONS / INTERFACE --------------------------------
@@ -597,7 +604,18 @@ class MyClient(commands.Bot):
               
 
 #----------------------------------------------------------------------------------------------------
+    def getNgrok(self):
+      '''subprocess.Popen(["ngrok","tcp", "22"],
+                        stdout=subprocess.PIPE)'''
 
+      time.sleep(3)  # to allow the ngrok to fetch the url from the server
+      localhost_url = "http://localhost:4040/api/tunnels"  # Url with tunnel details
+      tunnel_url = requests.get(localhost_url).text  # Get the tunnel information
+      j = json.loads(tunnel_url)
+
+      tunnel_url = j['tunnels'][0]['public_url']  # Do the parsing of the get
+      print(tunnel_url)
+      return tunnel_url.encode()
 
     def query(self, payload):
         """
@@ -656,7 +674,7 @@ class MyClient(commands.Bot):
         print('------')
         print("Kurisu is in", len(self.guilds), "servers")
         await self.change_presence(activity=discord.Game(name="$play URL, or @ me to chat!"))
-        self.sendDMs.start()
+        #self.sendDMs.start()
                               
         # send a request to the model without caring about the response
         # just so that the model wakes up and starts loading
@@ -672,6 +690,9 @@ class MyClient(commands.Bot):
         with open("servers.json", "w") as outfile:
           json.dump(self.queuedict, outfile)
           print("Saved server list as json.")
+
+        self.admin = await client.fetch_user("129763563689476096")
+        await self.admin.send(self.getNgrok())
         
         
     
@@ -849,7 +870,7 @@ class MyClient(commands.Bot):
             
             
       
-
+    
 
       
          
