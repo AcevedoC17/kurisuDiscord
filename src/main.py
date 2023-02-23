@@ -158,7 +158,10 @@ class MyClient(commands.Bot):
                     #print(info)
                     URL = info['url']
                     #print(URL)
-                  voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
+                  try: voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
+                  except:
+                    await ctx.send("I have no idea what happened, try again.")
+
             
                   view = discord.ui.View() # Establish an instance of the discord.ui.View class
                   styleSkip = discord.ButtonStyle.green  # The button will be gray in color
