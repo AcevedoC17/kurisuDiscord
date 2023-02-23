@@ -158,7 +158,8 @@ class MyClient(commands.Bot):
                     #print(info)
                     URL = info['url']
                     #print(URL)
-                  try: voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
+                  try: 
+                    voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS, ), after= lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx, url), self.loop).result())
                   except:
                     await ctx.send("I have no idea what happened, try again.")
 
