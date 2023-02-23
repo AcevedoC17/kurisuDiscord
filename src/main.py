@@ -359,13 +359,12 @@ class MyClient(commands.Bot):
 #---------------------------------- LEAVE -----------------------------------------------
         @self.command(name="leave")
         async def leave(ctx):
-          voice = get(self.voice_clients, guild=ctx.guild)
-          self.queuedict[ctx.guild.id].clear()
-          if voice.is_playing():
-            voice.stop()
-          await ctx.message.guild.voice_client.disconnect()
-          self.loop = False
-          await ctx.send("See you later.")
+          if not self.loop:
+              self.queuedict[ctx.guild.id].clear()
+              await ctx.message.guild.voice_client.disconnect()
+              await ctx.send("See you later.")
+          else:
+            await ctx.send("Disable the loop before I can leave.")
 
 
 
