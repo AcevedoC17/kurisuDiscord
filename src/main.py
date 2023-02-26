@@ -524,13 +524,24 @@ class MyClient(commands.Bot):
 #--------------------------------- PLAYLIST --------------------------------------------
         @self.command(name="playlist")
         async def playlist(ctx, *, content):
+            i = 0
             for s in self.playlistdict[content]:
               try:
                 self.queuedict[ctx.guild.id].append(s)
               except:
                 self.queuedict[ctx.guild.id] = [s]
             #await self.play(ctx, url = self.queuedict[ctx.guild.id].pop(0))
-            await ctx.invoke(self.get_command("play"), url=self.queuedict[ctx.guild.id].pop(0))
+            try: 
+               await ctx.invoke(self.get_command("play"), url=self.queuedict[ctx.guild.id].pop(i))
+            except: 
+               await ctx.send("This video was most likely deleted...let me try the next one.")
+               try:
+                await ctx.invoke(self.get_command("play"), url=self.queuedict[ctx.guild.id].pop(i+1))
+                await ctx.send("This one worked.")
+               except:
+                  await ctx.send("The next video is also probably deleted, I suggest making a new playlist using search terms only.")
+                  self.queuedict[ctx.guild.id].clear()
+               
 
 
 
