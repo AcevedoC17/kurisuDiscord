@@ -18,10 +18,13 @@ import json
 import requests
 import time
 import subprocess
+from typing import Literal, Optional
 
 # the Discord Python API
 import discord
+import discord.ext
 from discord.ext import commands
+from discord.ext.commands import Greedy, Context
 from discord.utils import get
 from discord.ext import tasks
 from discord import FFmpegPCMAudio
@@ -82,14 +85,9 @@ class MyClient(commands.Bot):
 
 
 #----------------------------- HELLO ---------------------------------------------
-        @self.command(name="Hello")
-        async def Hello(ctx):
-          view = discord.ui.View() # Establish an instance of the discord.ui.View class
-          style = discord.ButtonStyle.green  # The button will be gray in color
-          item = discord.ui.Button(style=style, label="Read the docs!", custom_id="skip") 
-          #item.callback(interaction=self.invoke(self.get_command("play"), url="blue lobster meme")) # Create an item to pass into the view class.
-          view.add_item(item=item)  # Add that item into the view class
-          await ctx.send("This message has buttons!", view=view)  # Send your message with a button.
+        @self.hybrid_command(name="first_slash")
+        async def first_slash(ctx): 
+          await ctx.send("You executed the slash command!")
 
           
           
@@ -100,7 +98,7 @@ class MyClient(commands.Bot):
 
 
 #--------------------------------- JOIN ------------------------------------------
-        @self.command(name="join")
+        @self.hybrid_command(name="join")
         async def join(ctx):
           channel = ctx.message.author.voice.channel
           voice = get(self.voice_clients, guild=ctx.guild)
@@ -214,6 +212,42 @@ class MyClient(commands.Bot):
                 
 
 
+
+#------------------------------------------ SYNC ---------------------------------------------
+
+
+        @self.command()
+        @commands.is_owner()
+        async def sync(
+          ctx: Context, guilds: Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+            if not guilds:
+                if spec == "~":
+                    synced = await ctx.bot.tree.sync(guild=ctx.guild)
+                elif spec == "*":
+                    ctx.bot.tree.copy_global_to(guild=ctx.guild)
+                    synced = await ctx.bot.tree.sync(guild=ctx.guild)
+                elif spec == "^":
+                    ctx.bot.tree.clear_commands(guild=ctx.guild)
+                    await ctx.bot.tree.sync(guild=ctx.guild)
+                    synced = []
+                else:
+                    synced = await ctx.bot.tree.sync()
+
+                await ctx.send(
+                    f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+                )
+                return
+
+            ret = 0
+            for guild in guilds:
+                try:
+                    await ctx.bot.tree.sync(guild=guild)
+                except discord.HTTPException:
+                    pass
+                else:
+                    ret += 1
+
+            await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
 
 
@@ -537,7 +571,6 @@ class MyClient(commands.Bot):
                await ctx.send("This video was most likely deleted...let me try the next one.")
                try:
                 await ctx.invoke(self.get_command("play"), url=self.queuedict[ctx.guild.id].pop(i+1))
-                await ctx.send("This one worked.")
                except:
                   await ctx.send("The next video is also probably deleted, I suggest making a new playlist using search terms only.")
                   self.queuedict[ctx.guild.id].clear()
@@ -679,8 +712,9 @@ class MyClient(commands.Bot):
         print(self.user.name)
         print(self.user.id)
         print('------')
-        print("Kurisu is in", len(self.guilds), "servers")
+        print("Amadeus is in", len(self.guilds), "servers")
         await self.change_presence(activity=discord.Game(name="$play URL, or @ me to chat!"))
+
         #self.sendDMs.start()
                               
         # send a request to the model without caring about the response
