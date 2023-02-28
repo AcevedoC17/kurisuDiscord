@@ -206,6 +206,8 @@ class MyClient(commands.Bot):
                         break #if it's playing it breaks
                     else:
                         if not (voice.is_playing):
+                          print("I left because voice is False")
+                          print(voice.is_playing)
                           await ctx.send("If you've got nothing to play, I'll leave.")
                           await ctx.message.guild.voice_client.disconnect()
 
