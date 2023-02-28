@@ -393,8 +393,7 @@ class MyClient(commands.Bot):
 #---------------------------------- LEAVE -----------------------------------------------
         @self.command(name="leave")
         async def leave(ctx):
-              global loop
-              loop = False
+              self.loopdict[ctx.guild.id] = False
               self.queuedict[ctx.guild.id].clear()
               await ctx.message.guild.voice_client.disconnect()
               await ctx.send("See you later.")
